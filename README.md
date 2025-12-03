@@ -1,81 +1,41 @@
-# AnalizadorLexico app
+# Analizador Léxico en Python con Flet
 
-## Run the app
+Este proyecto implementa un **analizador léxico** desarrollado en **Python**, utilizando **expresiones regulares** para el reconocimiento de patrones y **Flet** para la construcción de la interfaz gráfica.  
+El sistema permite ingresar código fuente y genera automáticamente:
 
-### uv
+- Tabla de **tokens**
+- Tabla de **símbolos**
+- Visualización estructurada dentro de una **interfaz Flet**
 
-Run as a desktop app:
+---
 
-```
-uv run flet run
-```
+## Características principales
 
-Run as a web app:
+- Analizador léxico implementado mediante **expresiones regulares**.
+- Detección de:
+  - Identificadores
+  - Números
+  - Operadores
+  - Palabras reservadas
+  - Delimitadores
+  - Caracteres no válidos
+- Generación dinámica de:
+  - **Tabla de tokens**  
+  - **Tabla de símbolos**
+- Interfaz gráfica responsiva desarrollada con **Flet**.
+- Arquitectura modular organizada dentro de la carpeta `src/`.
 
-```
-uv run flet run --web
-```
+---
 
-### Poetry
+## Requisitos
 
-Install dependencies from `pyproject.toml`:
+Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
-```
-poetry install
-```
+- Python 3.10 o superior  
+- pip  
+- Entorno virtual (recomendado)
 
-Run as a desktop app:
+Instala las dependencias del proyecto:
 
-```
-poetry run flet run
-```
-
-Run as a web app:
-
-```
-poetry run flet run --web
-```
-
-For more details on running the app, refer to the [Getting Started Guide](https://flet.dev/docs/getting-started/).
-
-## Build the app
-
-### Android
-
-```
-flet build apk -v
-```
-
-For more details on building and signing `.apk` or `.aab`, refer to the [Android Packaging Guide](https://flet.dev/docs/publish/android/).
-
-### iOS
-
-```
-flet build ipa -v
-```
-
-For more details on building and signing `.ipa`, refer to the [iOS Packaging Guide](https://flet.dev/docs/publish/ios/).
-
-### macOS
-
-```
-flet build macos -v
-```
-
-For more details on building macOS package, refer to the [macOS Packaging Guide](https://flet.dev/docs/publish/macos/).
-
-### Linux
-
-```
-flet build linux -v
-```
-
-For more details on building Linux package, refer to the [Linux Packaging Guide](https://flet.dev/docs/publish/linux/).
-
-### Windows
-
-```
-flet build windows -v
-```
-
-For more details on building Windows package, refer to the [Windows Packaging Guide](https://flet.dev/docs/publish/windows/).
+```bash
+pip install -r requirements.txt
