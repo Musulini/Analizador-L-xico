@@ -1,77 +1,80 @@
-# app.py
-import flet as ft
-from lexer import lex
+import tkinter as tk
+from tkinter import scrolledtext
+from lexer import Lexer
 
-def main(page: ft.Page):
-    page.title = "Analizador Léxico"
-    page.scroll = "auto"
+# ========================================
+#  Aquí pegas tu clase Lexer SIN CAMBIAR NADA
+# ========================================
+# class Token: ...
+# class Lexer: ...
+# (lo pegas tal como lo hiciste arriba)
+# ========================================
 
-    input_code = ft.TextField(label="Código", multiline=True, min_lines=30, expand=True)
 
-    token_table = ft.DataTable(
-        columns=[
-            ft.DataColumn(ft.Text("Tipo de Token")),
-            ft.DataColumn(ft.Text("Valor")),
-        ],
-        rows=[]
-    )
+class CompilerGUI:
+    def __init__(self):
+        self.window = tk.Tk()
+        self.window.title("Mini Compiler")
 
-    symbol_table = ft.DataTable(
-        columns=[
-            ft.DataColumn(ft.Text("Identificador")),
-        ],
-        rows=[]
-    )
+        # ==========================
+        # Área de edición (estilo editor)
+        # ==========================
+        self.editor = scrolledtext.ScrolledText(
+            self.window,
+            width=80,
+            height=25,
+            font=("Consolas", 12)
+        )
+        self.editor.pack(padx=10, pady=10)
 
-    def mostrar_resultados(tokens, symbols):
-        # limpiar tablas
-        token_table.rows.clear()
-        symbol_table.rows.clear()
+        # ==========================
+        # Botón Compile
+        # ==========================
+        self.compile_button = tk.Button(
+            self.window,
+            text="Compile",
+            font=("Arial", 12, "bold"),
+            command=self.compile_code
+        )
+        self.compile_button.pack(pady=5)
 
-        # llenar tabla de tokens
-        for ttype, tvalue in tokens:
-            token_table.rows.append(
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text(ttype)),
-                        ft.DataCell(ft.Text(tvalue)),
-                    ]
-                )
-            )
+        # ==========================
+        # Consola de salida
+        # ==========================
+        self.console = scrolledtext.ScrolledText(
+            self.window,
+            width=80,
+            height=10,
+            font=("Consolas", 11),
+            foreground="white",
+            background="black"
+        )
+        self.console.pack(padx=10, pady=10)
 
-        # llenar tabla de símbolos
-        for sym in symbols:
-            symbol_table.rows.append(
-                ft.DataRow(
-                    cells=[ft.DataCell(ft.Text(sym))]
-                )
-            )
+        self.window.mainloop()
 
-        page.update()
+    # ============================
+    # Compilar = ejecutar lexer
+    # ============================
+    def compile_code(self):
+        self.console.delete("1.0", tk.END)
 
-    def analizar(e):
+        code = self.editor.get("1.0", tk.END)
+        lexer = Lexer(code)
+
         try:
-            tokens, symbols = lex(input_code.value)
-            mostrar_resultados(tokens, symbols)
+            tokens = lexer.scan_all()
+            self.console.insert(tk.END, "Compilation success.\n\nTokens:\n")
+            for t in tokens:
+                self.console.insert(tk.END, str(t) + "\n")
 
-        except Exception as ex:
-            token_table.rows.clear()
-            symbol_table.rows.clear()
-            token_table.rows.append(
-                ft.DataRow(cells=[ft.DataCell(ft.Text(f"ERROR: {ex}")), ft.DataCell(ft.Text("---"))])
-            )
-            page.update()
-
-    btn = ft.ElevatedButton("Analizar", on_click=analizar)
-
-    page.add(
-        input_code,
-        btn,
-        ft.Text("Tabla de Tokens", size=18, weight="bold"),
-        token_table,
-        ft.Text("Tabla de Símbolos", size=18, weight="bold"),
-        symbol_table
-    )
+        except Exception as e:
+            self.console.insert(tk.END, "❌ ERROR DURING COMPILATION ❌\n\n")
+            self.console.insert(tk.END, str(e) + "\n")
 
 
-ft.app(target=main)
+# ============================
+# Ejecutar la GUI
+# ============================
+if __name__ == "__main__":
+    CompilerGUI()
