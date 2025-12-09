@@ -2,23 +2,12 @@ import tkinter as tk
 from tkinter import scrolledtext
 from lexer import Lexer
 
-# ========================================
-#  Aquí pegas tu clase Lexer SIN CAMBIAR NADA
-# ========================================
-# class Token: ...
-# class Lexer: ...
-# (lo pegas tal como lo hiciste arriba)
-# ========================================
-
 
 class CompilerGUI:
     def __init__(self):
         self.window = tk.Tk()
         self.window.title("Mini Compiler")
 
-        # ==========================
-        # Área de edición (estilo editor)
-        # ==========================
         self.editor = scrolledtext.ScrolledText(
             self.window,
             width=80,
@@ -27,9 +16,6 @@ class CompilerGUI:
         )
         self.editor.pack(padx=10, pady=10)
 
-        # ==========================
-        # Botón Compile
-        # ==========================
         self.compile_button = tk.Button(
             self.window,
             text="Compile",
@@ -38,9 +24,6 @@ class CompilerGUI:
         )
         self.compile_button.pack(pady=5)
 
-        # ==========================
-        # Consola de salida
-        # ==========================
         self.console = scrolledtext.ScrolledText(
             self.window,
             width=80,
@@ -53,9 +36,6 @@ class CompilerGUI:
 
         self.window.mainloop()
 
-    # ============================
-    # Compilar = ejecutar lexer
-    # ============================
     def compile_code(self):
         self.console.delete("1.0", tk.END)
 
@@ -69,12 +49,8 @@ class CompilerGUI:
                 self.console.insert(tk.END, str(t) + "\n")
 
         except Exception as e:
-            self.console.insert(tk.END, "❌ ERROR DURING COMPILATION ❌\n\n")
+            self.console.insert(tk.END, "Error during compiling process\n\n")
             self.console.insert(tk.END, str(e) + "\n")
 
-
-# ============================
-# Ejecutar la GUI
-# ============================
 if __name__ == "__main__":
     CompilerGUI()

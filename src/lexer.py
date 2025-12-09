@@ -22,6 +22,9 @@ class Lexer:
         self.i = 0
         self.length = len(text)
 
+    # ==========================================
+    # Utilidades
+    # ==========================================
     def current_char(self):
         if self.i < self.length:
             return self.text[self.i]
@@ -34,39 +37,44 @@ class Lexer:
         while self.current_char() is not None and self.current_char().isspace():
             self.advance()
 
-    # ==========================================
-    # Palabras reservadas o Identificadores
-    # ==========================================
     def scan_identifier_or_reserved(self):
         c = self.current_char()
-
         if not c.isalpha():
             raise Exception(f"Error: Expected letter at position {self.i}")
 
         lexeme = c
         self.advance()
 
-        # Primera bifurcación del autómata:
-        # ¿si la siguiente es letra → palabra reservada?
-        if self.current_char() is not None and self.current_char().isalpha():
-            # entonces debe ser palabra reservada O error
-            while self.current_char() is not None and self.current_char().isalpha():
-                lexeme += self.current_char()
-                self.advance()
-
-            if lexeme in self.RESERVED:
-                return Token("RESERVED", lexeme)
-
-            raise Exception(f"Error: Invalid identifier '{lexeme}'. Only 1 letter allowed.")
-
-        # Si no hay más letras, ahora deben venir dígitos
-        digits = ""
-
-        while (self.current_char() is not None
-               and self.current_char().isdigit()
-               and len(digits) < 3):
-            digits += self.current_char()
+        while self.current_char() is not None and self.current_char().isalpha():
+            lexeme += self.current_char()
             self.advance()
+
+        if lexeme in self.RESERVED:
+            return Token("RESERVED", lexeme)
+
+        digits = ""
+        state = 1  # esperar mínimo 1 dígito
+
+        while True:
+            c = self.current_char()
+            if c is None or not c.isdigit():
+                break
+
+            if state == 1:  # primer dígito
+                digits += c
+                self.advance()
+                state = 2
+            elif state == 2:  # segundo dígito
+                digits += c
+                self.advance()
+                state = 3
+            elif state == 3:  # tercer dígito (último permitido)
+                digits += c
+                self.advance()
+                state = 4  # estado final
+            else:
+                # Estado 4 solo acepta fin del identificador
+                raise Exception(f"Error: Identifier '{lexeme + digits}' exceeds max 3 digits")
 
         if len(digits) == 0:
             raise Exception(f"Error: Identifier '{lexeme}' missing digits (1–3 required)")
@@ -74,50 +82,68 @@ class Lexer:
         return Token("IDENTIFIER", lexeme + digits)
 
     # ==========================================
-    # Números Enteros o Decimales
+    # ENTEROS Y DECIMALES (AUTÓMATA)
+    # entero: d d? d? d? d? d?
+    # decimal: entero '.' d d? d?
     # ==========================================
     def scan_number(self):
         digits = ""
+        state = 0  # 0–5 dígitos permitidos
 
-        # Parte entera (máximo 6 dígitos)
-        while (self.current_char() is not None
-               and self.current_char().isdigit()
-               and len(digits) < 6):
-            digits += self.current_char()
-            self.advance()
+        # Autómata para la parte entera
+        while True:
+            c = self.current_char()
+            if c is None or not c.isdigit():
+                break
 
-        # Si no recogió nada
+            if state <= 5:
+                digits += c
+                state += 1
+                self.advance()
+            else:
+                raise Exception("Error: Integer length exceeds 6 digits")
+
         if len(digits) == 0:
             raise Exception("Error: Invalid number")
 
-        # Si se pasaron de 6 dígitos
-        if self.current_char() is not None and self.current_char().isdigit():
-            raise Exception("Error: Integer length exceeds 6 digits")
-
-        # Decimal
+        # ¿decimal?
         if self.current_char() == '.':
             self.advance()
-            frac = ""
 
-            if not self.current_char() or not self.current_char().isdigit():
+            # Estado decimal: 1–3 dígitos
+            frac = ""
+            dstate = 1  # necesita al menos 1
+
+            c = self.current_char()
+            if c is None or not c.isdigit():
                 raise Exception("Error: Invalid decimal, must have digits after '.'")
 
-            while (self.current_char() is not None
-                   and self.current_char().isdigit()
-                   and len(frac) < 3):
-                frac += self.current_char()
-                self.advance()
+            while True:
+                c = self.current_char()
+                if c is None or not c.isdigit():
+                    break
 
-            # demasiados decimales
-            if self.current_char() is not None and self.current_char().isdigit():
-                raise Exception("Error: Decimal part exceeds 3 digits")
+                if dstate == 1:
+                    frac += c
+                    self.advance()
+                    dstate = 2
+                elif dstate == 2:
+                    frac += c
+                    self.advance()
+                    dstate = 3
+                elif dstate == 3:
+                    frac += c
+                    self.advance()
+                    dstate = 4
+                else:
+                    raise Exception("Error: Decimal part exceeds 3 digits")
 
             return Token("FLOAT", digits + "." + frac)
 
         return Token("INT", digits)
 
     # ==========================================
-    # Símbolo
+    # SÍMBOLOS
     # ==========================================
     def scan_symbol(self):
         c = self.current_char()
@@ -128,7 +154,7 @@ class Lexer:
         raise Exception(f"Unknown symbol '{c}'")
 
     # ==========================================
-    # Siguiente token
+    # SIGUIENTE TOKEN
     # ==========================================
     def next_token(self):
         self.skip_whitespace()
